@@ -1,0 +1,591 @@
+================================================================================
+                   SPD MERGER TOOL v1.3 - COMPLETE GUIDE
+                          by ClearPlan LLC
+================================================================================
+
+PRODUCT INFORMATION
+================================================================================
+
+Version:        1.3 (Multi-File Support)
+Release Date:   October 28, 2025
+Developer:      ClearPlan LLC
+Website:        https://clearplanconsulting.com
+Compliance:     IPMDAR SPD File Format Specification v1.0
+
+What is this tool?
+------------------
+The SPD Merger Tool combines multiple IPMDAR Schedule Performance Dataset 
+(SPD) files into a single merged SPD file. This professional-grade utility 
+enables program managers and schedulers to integrate schedules from different 
+contractors, phases, or subsystems into unified program views.
+
+
+KEY FEATURES
+================================================================================
+
+✓ Multi-File Merge:       Merge 2, 3, 5, 10+ SPD files simultaneously
+✓ Smart Prefixing:        Automatic prefix generation from file names
+✓ FFS Compliance:         100% compliant with IPMDAR SPD v1.0 specification
+✓ Comprehensive Logging:  Detailed traceability of all merge operations
+✓ Validation:            Extensive data integrity and constraint checking
+✓ Browser-Based:          No installation required - runs in your browser
+✓ Offline Capable:        Can operate without internet connectivity
+✓ Professional Quality:   Production-ready for critical program schedules
+
+
+SYSTEM REQUIREMENTS
+================================================================================
+
+Supported Browsers:
+  • Google Chrome 90+ (Recommended)
+  • Microsoft Edge 90+
+  • Firefox 88+
+  • Safari 14+
+
+Hardware:
+  • 4GB RAM minimum (8GB recommended for large merges)
+  • Modern multi-core processor
+
+File Limitations:
+  • Tested with SPD files up to 50MB each
+  • Tested with up to 10,000 tasks per file
+  • Practical limit depends on browser memory
+
+Typical Performance:
+  • 2 files:   5-15 seconds
+  • 5 files:   20-45 seconds
+  • 10 files:  40-90 seconds
+
+
+QUICK START GUIDE
+================================================================================
+
+STEP 1: OPEN THE TOOL
+----------------------
+Double-click SPD_Merger_Tool_v1_2.html
+The tool opens in your default web browser - no installation required.
+
+STEP 2: ADD YOUR FILES
+----------------------
+• Drag and drop all SPD ZIP files into the drop zone
+• Or click the drop zone to browse and select files
+• Add as many files as needed (minimum 2)
+• Files can be added all at once or incrementally
+
+STEP 3: REVIEW FILE LIST
+-------------------------
+The tool displays all loaded files:
+  
+  File 1 (PRIMARY) ★
+    • No prefix applied
+    • Original IDs preserved
+    • Green highlighted
+  
+  Files 2-N (SECONDARY)
+    • Auto-generated prefixes (editable)
+    • Click prefix field to customize
+    • Remove button available
+
+STEP 4: CONFIGURE MERGE
+------------------------
+Choose your hierarchy strategy:
+
+  ○ Separate Hierarchies
+    All file hierarchies remain as parallel Level 1 structures
+    Good for: Independent subprojects, parallel work streams
+  
+  ○ Create New Root Summary
+    All hierarchies placed under a new master root task
+    Good for: Integrated programs, master project views
+    Enter name: "Master Program" (or your preferred name)
+
+STEP 5: MERGE
+-------------
+• Click "Merge N SPD Files" button
+• Monitor progress bar
+• Wait for completion message
+
+STEP 6: DOWNLOAD
+----------------
+• Click "Download Merged SPD" - Your integrated schedule
+• Click "Download Log File" - Complete merge documentation
+• Review log for any warnings or issues
+• Import merged SPD into your scheduling tool
+
+
+HOW IT WORKS
+================================================================================
+
+AUTOMATIC PREFIX STRATEGY
+--------------------------
+With multiple files, the tool uses automatic prefixing:
+
+  File 1:  No prefix (PRIMARY)
+           Original IDs preserved exactly as-is
+  
+  Files 2-N:  Receive prefixes
+              All task IDs, resource IDs, calendar IDs get prefix
+              Relationships automatically remapped
+
+Example:
+  Input Files:
+    1. Prime_Contractor.zip      → No prefix
+    2. Subcontractor_A.zip       → Prefix: "SUBCONTRACTOR_A_"
+    3. Propulsion_System.zip     → Prefix: "PROPULSION_SYSTEM_"
+  
+  Result IDs:
+    From File 1:  TASK-001, TASK-002, RES-A, RES-B
+    From File 2:  SUBCONTRACTOR_A_TASK-001, SUBCONTRACTOR_A_RES-A
+    From File 3:  PROPULSION_SYSTEM_TASK-001, PROPULSION_SYSTEM_RES-A
+
+EDITING PREFIXES
+----------------
+You can customize any auto-generated prefix:
+  1. Click in the prefix field
+  2. Type your preferred prefix
+  3. Press Enter or click outside the field
+  
+  Valid characters: A-Z, a-z, 0-9, underscore (_), dash (-)
+  Invalid: Spaces, special characters (!@#$%^&*)
+  
+  The tool validates in real-time and warns about duplicates.
+
+SEQUENTIAL MERGE ALGORITHM
+---------------------------
+The tool merges files one at a time:
+  
+  Step 1: File 1 becomes the base
+  Step 2: Merge File 2 into base → Intermediate result
+  Step 3: Merge File 3 into intermediate → New intermediate
+  Step 4: Continue for all files
+  Step 5: Apply hierarchy strategy to final result
+  Step 6: Validate complete merged SPD
+  
+  Benefits:
+    • Memory efficient - only 2 files in memory at once
+    • Clear progression tracking
+    • Handles large file sets
+    • Detailed step-by-step logging
+
+
+COMMON USE CASES
+================================================================================
+
+CASE 1: PRIME CONTRACTOR + SUBCONTRACTORS
+------------------------------------------
+Scenario: Integrate prime contractor schedule with two subcontractor schedules
+
+Files:
+  1. PrimeContractor.zip       (2000 tasks)
+  2. SubcontractorA.zip        (1500 tasks)
+  3. SubcontractorB.zip        (1200 tasks)
+
+Configuration:
+  • Hierarchy: Create New Root Summary
+  • Root Name: "Integrated Program"
+  • Edit prefixes to: "SUBA_" and "SUBB_" for brevity
+
+Result:
+  Single integrated schedule with 4,700 tasks under master root
+  Clear contractor attribution via prefixes
+
+
+CASE 2: SYSTEM + SUBSYSTEMS
+----------------------------
+Scenario: Combine system integration schedule with subsystem schedules
+
+Files:
+  1. SystemIntegration.zip
+  2. Avionics.zip
+  3. Propulsion.zip
+  4. Structure.zip
+  5. Software.zip
+
+Configuration:
+  • Hierarchy: Separate Hierarchies
+  • Keep auto-generated prefixes or simplify to "AVI_", "PROP_", etc.
+
+Result:
+  Five parallel schedules with subsystem tracking
+  Useful for system-of-systems analysis
+
+
+CASE 3: MULTI-PHASE PROGRAM
+----------------------------
+Scenario: Combine schedules from different program phases
+
+Files:
+  1. ProgramBaseline.zip
+  2. Phase1_Design.zip
+  3. Phase2_Development.zip
+  4. Phase3_Testing.zip
+  5. Phase4_Production.zip
+
+Configuration:
+  • Hierarchy: Create New Root Summary
+  • Root Name: "Full Program Lifecycle"
+  • Edit prefixes to: "P1_", "P2_", "P3_", "P4_"
+
+Result:
+  Complete program view spanning all phases
+  Phase identification via consistent prefix pattern
+
+
+UNDERSTANDING OUTPUT FILES
+================================================================================
+
+MERGED SPD FILE
+---------------
+Format:         ZIP file containing JSON files
+Naming:         MERGED_[N]FILES_[timestamp].zip
+Contents:       All 19 IPMDAR SPD tables merged and validated
+Compliance:     IPMDAR SPD v1.0 format specification
+Import:         Compatible with all SPD-compliant scheduling tools
+
+Structure Inside ZIP:
+  • FileType.txt
+  • ProjectScheduleData.json
+  • Tasks.json
+  • TaskScheduleData.json
+  • TaskOutlineStructure.json
+  • TaskRelationships.json
+  • Resources.json
+  • ResourceAssignments.json
+  • Calendars.json
+  • CalendarWorkshifts.json
+  • CalendarExceptions.json
+  • (Plus 8 other SPD tables)
+
+MERGE LOG FILE
+--------------
+Format:         Plain text
+Naming:         MERGE_LOG_[N]FILES_[timestamp].txt
+Purpose:        Complete documentation of merge process
+Contents:       Configuration, file details, operations, validation, statistics
+
+Key Log Sections:
+  1. HEADER
+     • Configuration settings
+     • Input file names and sizes
+     • Timestamp of merge operation
+  
+  2. FILE INFORMATION
+     • Each file's statistics (tasks, resources, etc.)
+     • Assigned prefixes
+     • File loading sequence
+  
+  3. SEQUENTIAL MERGE PROCESS
+     • Step-by-step merge operations
+     • Phase 1-9 merge procedures
+     • ID remapping documentation
+     • Cumulative statistics after each file
+  
+  4. VALIDATION RESULTS
+     • Comprehensive data integrity checks
+     • Error count (blocks import if > 0)
+     • Warning count (review but usually acceptable)
+     • Specific issues listed with locations
+  
+  5. SUMMARY & RECOMMENDATIONS
+     • Final statistics
+     • Success/warning indicators
+     • Next steps guidance
+     • Import recommendations
+
+Always save and review the log file for complete traceability.
+
+
+VALIDATION & DATA INTEGRITY
+================================================================================
+
+The tool performs extensive validation:
+
+FILE FORMAT CHECKS
+  ✓ Valid ZIP structure
+  ✓ FileType.txt present and correct
+  ✓ All required JSON files present
+  ✓ Valid JSON syntax
+
+FFS COMPLIANCE CHECKS
+  ✓ Primary key uniqueness (task IDs, resource IDs, etc.)
+  ✓ Foreign key integrity (relationships reference valid tasks)
+  ✓ Task hierarchy rules (valid levels, parent references)
+  ✓ Calendar integrity (workshifts, exceptions)
+  ✓ Resource assignment references
+  ✓ Date logic and consistency
+
+CONSTRAINT VALIDATION
+  ✓ No ID collisions after prefixing
+  ✓ No orphaned relationships
+  ✓ No invalid task levels
+  ✓ No missing calendar references
+  ✓ No dangling resource assignments
+
+All validation results are documented in the log file.
+
+
+TROUBLESHOOTING
+================================================================================
+
+PROBLEM: Browser says "Out of Memory"
+SOLUTION: 
+  • Close other browser tabs
+  • Use Chrome or Edge (better memory management)
+  • Merge in smaller batches if dealing with 10+ large files
+  • Restart browser between large operations
+
+PROBLEM: Tool won't load files / Error loading file
+SOLUTION:
+  • Verify files are valid SPD ZIP files
+  • Check that FileType.txt exists in ZIP
+  • Ensure files aren't corrupted
+  • Try loading files one at a time to isolate bad file
+
+PROBLEM: Prefix field turns red / Invalid prefix error
+SOLUTION:
+  • Use only: letters (A-Z, a-z), numbers (0-9), underscore (_), dash (-)
+  • No spaces or special characters
+  • Prefix cannot be empty for secondary files
+
+PROBLEM: Warning about duplicate prefixes
+SOLUTION:
+  • Edit one or both prefixes to make them unique
+  • Tool prevents merge until duplicates are resolved
+
+PROBLEM: Merge takes very long time
+SOLUTION:
+  • Normal for 10+ files or very large files (>10,000 tasks each)
+  • Allow 1-2 minutes for large operations
+  • Don't close browser during merge
+  • Progress bar shows operation is still running
+
+PROBLEM: Want to change primary file
+SOLUTION:
+  • Remove all files from list (click Remove button on each)
+  • Re-add files with desired primary file first
+  • Primary file is always the first file added
+
+PROBLEM: Auto-generated prefix is too long
+SOLUTION:
+  • Click in prefix field and edit to shorter version
+  • Example: "PROPULSION_SYSTEM_" → "PROP_"
+  • Press Enter to save
+
+PROBLEM: Can't import merged file to scheduling tool
+SOLUTION:
+  • Check log file validation section for errors
+  • Errors (✗) must be resolved before import
+  • Warnings (⚠) are usually acceptable
+  • Verify scheduling tool supports IPMDAR SPD format
+  • Contact tool vendor if import still fails
+
+
+BEST PRACTICES
+================================================================================
+
+BEFORE MERGING
+--------------
+☑ Back up all original SPD files
+☑ Verify all files are from compatible tools/versions
+☑ Check that status dates are reasonably close
+☑ Understand the project structures you're combining
+☑ Plan your prefix strategy (meaningful, concise)
+☑ Decide on appropriate hierarchy strategy
+
+DURING MERGE
+------------
+☑ Add files in desired order (primary file first)
+☑ Review auto-generated prefixes - customize if needed
+☑ Use meaningful, short prefixes (SUBA_, PROP_, P1_)
+☑ Ensure no duplicate prefixes (tool will warn)
+☑ Choose correct hierarchy strategy for your use case
+☑ Don't close browser window during merge
+
+AFTER MERGE
+-----------
+☑ Always download and save the log file
+☑ Review all warnings in log file
+☑ Check final statistics make sense
+☑ Import to scheduling tool and verify
+☑ Spot-check several tasks from each source file
+☑ Verify relationships look correct
+☑ Check that critical paths make sense
+☑ Validate resource assignments
+☑ Review custom fields if applicable
+
+
+ADVANCED TOPICS
+================================================================================
+
+HANDLING VERY LARGE MERGES (10+ FILES)
+---------------------------------------
+For merges involving many files or very large files:
+  1. Close all other browser tabs
+  2. Use Chrome or Edge (recommended)
+  3. Consider merging in two stages:
+     • Stage 1: Merge primary + 4-5 files → Intermediate SPD
+     • Stage 2: Merge intermediate + remaining files → Final SPD
+  4. Allow adequate time (up to 2-3 minutes possible)
+  5. Monitor browser memory usage via Task Manager
+
+PREFIX NAMING STRATEGIES
+-------------------------
+Good prefix patterns:
+  ✓ Contractor-based:    PRIME_, SUBA_, SUBB_
+  ✓ Subsystem-based:     AVI_, PROP_, STRUCT_, SW_
+  ✓ Phase-based:         P1_, P2_, P3_, P4_
+  ✓ Location-based:      WEST_, EAST_, OFFSHORE_
+  ✓ Functional:          DESIGN_, BUILD_, TEST_
+
+Avoid:
+  ✗ Generic: FILE2_, FILE3_
+  ✗ Too long: PROPULSION_SUBSYSTEM_INTEGRATION_
+  ✗ Inconsistent: Phase1_, P2, PHASE_3
+
+HIERARCHY STRATEGY SELECTION
+-----------------------------
+Choose "Separate Hierarchies" when:
+  • Files represent independent subprojects
+  • You need parallel work stream visibility
+  • Integration is loose/informational only
+  • Files have fundamentally different structures
+
+Choose "Create New Root Summary" when:
+  • You need unified program view
+  • Creating master integrated schedule
+  • Reporting to single program office
+  • Files represent components of one program
+
+OFFLINE DEPLOYMENT
+------------------
+For classified or air-gapped environments:
+  1. Download JSZip library (jszip.min.js) from CDN
+  2. Place in same directory as HTML file
+  3. Edit HTML to reference local JSZip file:
+     Change: src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
+     To:     src="./jszip.min.js"
+  4. Tool now operates completely offline
+
+
+TECHNICAL SPECIFICATIONS
+================================================================================
+
+Technology Stack:
+  • HTML5 + CSS3
+  • JavaScript ES6+
+  • JSZip library v3.10.1
+
+Processing:
+  • Client-side only (no server communication)
+  • In-memory processing
+  • No data transmitted externally
+  • No cookies or local storage used
+
+Data Handling:
+  • All processing in browser memory
+  • No files written to disk except user downloads
+  • Memory released after merge completion
+  • Privacy-preserving design
+
+Output Format:
+  • IPMDAR SPD v1.0 specification
+  • JSON-based file structure
+  • ZIP compression
+  • Compatible with MS Project (with plugin), Primavera P6, etc.
+
+
+SUPPORT & CONTACT
+================================================================================
+
+Tool Support:
+  • Review this documentation
+  • Check log file for specific error details
+  • Verify source SPD files are valid
+  • Contact your system administrator
+
+Professional Services:
+  ClearPlan LLC specializes in:
+    • Program management services
+    • Planning and scheduling
+    • Earned value management
+    • Tools and technology
+    • Training solutions
+  
+  Website: https://clearplanconsulting.com
+  
+  For program management consulting services, schedule analysis,
+  or custom tool development, visit our website.
+
+
+CHANGELOG
+================================================================================
+
+Version 1.3 (October 2025) - CURRENT
+-------------------------------------
+NEW FEATURES:
+  • Multi-file merge support (2+ files, no theoretical limit)
+  • Dynamic file management with add/remove capability
+  • Smart auto-prefix generation from file names
+  • Editable prefixes with real-time validation
+  • Sequential merge algorithm for memory efficiency
+  • Enhanced logging showing step-by-step operations
+  • Duplicate prefix detection and warning
+
+IMPROVEMENTS:
+  • Simplified configuration (prefix strategy is automatic)
+  • Better user interface for file management
+  • Primary file clearly indicated with visual marker
+  • Improved error messages and validation
+  • Performance optimization for large file sets
+  • Resolved issue with root summary task creation
+  • Implemented ClearPlan branding
+
+Version 1.1 (October 2025)
+---------------------------
+  • Fixed custom field ID validation error
+  • Improved ZIP generation for Windows compatibility
+  • Enhanced logging for custom fields
+  • Bug fixes and stability improvements
+
+Version 1.0 (October 2025)
+---------------------------
+  • Initial release
+  • 2-file merge capability
+  • Two ID collision strategies (merge/prefix)
+  • Two hierarchy strategies (separate/new root)
+  • Comprehensive validation
+  • Detailed logging
+  • FFS v1.0 compliant output
+
+
+LEGAL & COMPLIANCE
+================================================================================
+
+Copyright:
+  © 2025 ClearPlan LLC. All rights reserved.
+
+Compliance:
+  This tool produces output compliant with:
+  • IPMDAR Schedule Performance Dataset File Format Specification v1.0
+  • Federal contract data requirements (when applicable)
+
+Disclaimer:
+  This tool is provided "as-is" for merging IPMDAR SPD files. Users are
+  responsible for validating merged output meets their specific program
+  requirements. Always review merge logs and validate results before use
+  in production environments.
+
+Privacy:
+  No user data is collected, transmitted, or stored. All processing occurs
+  locally in the user's browser. No analytics or tracking implemented.
+
+
+================================================================================
+                            END OF DOCUMENTATION
+================================================================================
+
+For additional information, professional services, or support:
+Visit: https://clearplanconsulting.com
+
+Document Version: 1.3
+Last Updated: October 28, 2025

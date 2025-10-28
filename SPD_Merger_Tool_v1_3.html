@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPD Merger Tool v1.3 - ClearPlan Consulting</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #00a8e1 0%, #1e3a5f 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #00a8e1 0%, #1e3a5f 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .header .version-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        
+        .header-logo {
+            max-width: 300px;
+            height: auto;
+            margin-bottom: 15px;
+            filter: brightness(0) invert(1);
+        }
+        
+        @media (max-width: 768px) {
+            .header-logo {
+                max-width: 200px;
+            }
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #00a8e1;
+        }
+        
+        .section h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section h2::before {
+            content: "▶";
+            margin-right: 10px;
+            color: #00a8e1;
+        }
+        
+        .file-drop-zone {
+            border: 2px dashed #00a8e1;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .file-drop-zone:hover {
+            background: #f0f4ff;
+            border-color: #008fc8;
+        }
+        
+        .file-drop-zone.drag-over {
+            background: #e8f0ff;
+            border-color: #0076a8;
+            transform: scale(1.02);
+        }
+        
+        .file-drop-zone input[type="file"] {
+            display: none;
+        }
+        
+        .file-drop-zone-content {
+            pointer-events: none;
+        }
+        
+        .file-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        .file-list {
+            margin-top: 20px;
+        }
+        
+        .file-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 2px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.2s;
+        }
+        
+        .file-item.primary {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+        
+        .file-item-number {
+            font-weight: bold;
+            font-size: 18px;
+            color: #00a8e1;
+            min-width: 30px;
+        }
+        
+        .file-item.primary .file-item-number {
+            color: #28a745;
+        }
+        
+        .file-item-icon {
+            font-size: 24px;
+        }
+        
+        .file-item-details {
+            flex: 1;
+        }
+        
+        .file-item-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .file-item-stats {
+            font-size: 12px;
+            color: #777;
+        }
+        
+        .file-item-prefix {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .file-item-prefix label {
+            font-size: 12px;
+            color: #555;
+            font-weight: 600;
+        }
+        
+        .prefix-input {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: monospace;
+            width: 150px;
+            transition: border-color 0.2s;
+        }
+        
+        .prefix-input:focus {
+            outline: none;
+            border-color: #00a8e1;
+        }
+        
+        .prefix-input.invalid {
+            border-color: #dc3545;
+            background: #fff5f5;
+        }
+        
+        .remove-button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .remove-button:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+        
+        .config-group {
+            margin-bottom: 20px;
+        }
+        
+        .config-group label {
+            display: block;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+        
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .radio-option:hover {
+            border-color: #00a8e1;
+            background: #f8f9ff;
+        }
+        
+        .radio-option input[type="radio"] {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        .radio-option input[type="radio"]:checked + label {
+            color: #00a8e1;
+            font-weight: 600;
+        }
+        
+        .radio-option label {
+            flex: 1;
+            cursor: pointer;
+            margin: 0;
+            font-weight: normal;
+        }
+        
+        .radio-option-desc {
+            font-size: 12px;
+            color: #777;
+            margin-top: 4px;
+        }
+        
+        .text-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        
+        .text-input:focus {
+            outline: none;
+            border-color: #00a8e1;
+        }
+        
+        .merge-button {
+            background: linear-gradient(135deg, #00a8e1 0%, #1e3a5f 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .merge-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .merge-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .status-box.info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            color: #1565c0;
+            display: block;
+        }
+        
+        .status-box.success {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            color: #2e7d32;
+            display: block;
+        }
+        
+        .status-box.warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            color: #e65100;
+            display: block;
+        }
+        
+        .status-box.error {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            color: #c62828;
+            display: block;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .progress-bar.active {
+            display: block;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00a8e1 0%, #1e3a5f 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .log-preview {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .download-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .download-button {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .download-button.primary {
+            background: #28a745;
+            color: white;
+        }
+        
+        .download-button.primary:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .download-button.secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .download-button.secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #00a8e1;
+        }
+        
+        .stat-card h3 {
+            font-size: 24px;
+            color: #00a8e1;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card p {
+            font-size: 12px;
+            color: #777;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+            font-size: 12px;
+            background: #f8f9fa;
+        }
+        
+        .info-badge {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+            opacity: 0.3;
+        }
+        
+        @media (max-width: 768px) {
+            .download-links {
+                flex-direction: column;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .file-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .file-item-prefix {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="data:image/png;base64,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" alt="ClearPlan Logo" class="header-logo" />
+            <h1 style="margin: 15px 0 10px 0;">IPMDAR SPD Merger Tool</h1>
+            <p>Merge Multiple Schedule Performance Datasets with Full FFS Compliance</p>
+            <span class="version-badge">Version 1.3 - Multi-File Support</span>
+        </div>
+        
+        <div class="content">
+            <!-- File Input Section -->
+            <div class="section">
+                <h2>Input Files</h2>
+                <p style="margin-bottom: 15px; color: #555;">
+                    Add 2 or more SPD files to merge. The first file will be the primary (no prefix applied).
+                </p>
+                
+                <div class="file-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                    <input type="file" id="fileInput" accept=".zip" multiple />
+                    <div class="file-drop-zone-content">
+                        <div class="file-icon">📁</div>
+                        <p><strong>Click or drag SPD ZIP files here</strong></p>
+                        <p style="font-size: 12px; color: #777; margin-top: 5px;">You can add multiple files at once</p>
+                    </div>
+                </div>
+                
+                <div class="file-list" id="fileList">
+                    <!-- Files will be added here dynamically -->
+                </div>
+            </div>
+            
+            <!-- Configuration Section -->
+            <div class="section">
+                <h2>Merge Configuration</h2>
+                
+                <div class="config-group">
+                    <label>Task Hierarchy Strategy</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" name="hierarchyStrategy" id="hierSeparate" value="separate" checked />
+                            <label for="hierSeparate">
+                                <div><strong>Separate Hierarchies</strong></div>
+                                <div class="radio-option-desc">Keep all file hierarchies as separate parallel structures.</div>
+                            </label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="hierarchyStrategy" id="hierRoot" value="newRoot" />
+                            <label for="hierRoot">
+                                <div><strong>Create New Root Summary</strong></div>
+                                <div class="radio-option-desc">Create a new top-level summary task containing all hierarchies.</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="config-group" id="rootNameInputGroup" style="display: none;">
+                    <label for="rootNameInput">New Root Summary Task Name</label>
+                    <input type="text" id="rootNameInput" class="text-input" placeholder="Master Project" value="Master Project" />
+                </div>
+                
+                <button class="merge-button" id="mergeButton" disabled>
+                    🚀 Merge All SPD Files
+                </button>
+            </div>
+            
+            <!-- Status Section -->
+            <div id="statusSection">
+                <div id="statusBox" class="status-box"></div>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div id="statsSection"></div>
+                <div id="logPreview"></div>
+                <div id="downloadLinks"></div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>IPMDAR Schedule Performance Dataset Merger Tool v1.3</strong></p>
+            <p style="margin: 5px 0;">Developed by <strong>ClearPlan Consulting</strong></p>
+            <p style="margin: 5px 0;">Compliant with IPMDAR SPD File Format Specification v1.0</p>
+            <p style="margin: 10px 0 5px 0; opacity: 0.7;">
+                <a href="https://clearplanconsulting.com" target="_blank" style="color: #00a8e1; text-decoration: none;">clearplanconsulting.com</a>
+            </p>
+            <p style="opacity: 0.7;">© 2025 ClearPlan Consulting. All rights reserved.</p>
+        </div>
+    </div>
+    
+    <script>
+        // Global state
+        let spdFiles = []; // Array of {data, fileName, prefix}
+        let mergeLog = [];
+        let mergedSPD = null;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupFileInputs();
+            setupConfigListeners();
+        });
+        
+        function setupFileInputs() {
+            const fileInput = document.getElementById('fileInput');
+            const dropZone = document.getElementById('dropZone');
+            
+            fileInput.addEventListener('change', handleFileSelect);
+            setupDropZone(dropZone, fileInput);
+        }
+        
+        function setupDropZone(zone, input) {
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('drag-over');
+            });
+            
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('drag-over');
+            });
+            
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                zone.classList.remove('drag-over');
+                
+                const files = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.zip'));
+                if (files.length > 0) {
+                    handleMultipleFiles(files);
+                }
+            });
+        }
+        
+        function setupConfigListeners() {
+            const hierarchyRadios = document.getElementsByName('hierarchyStrategy');
+            const rootNameInputGroup = document.getElementById('rootNameInputGroup');
+            
+            hierarchyRadios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    rootNameInputGroup.style.display = e.target.value === 'newRoot' ? 'block' : 'none';
+                });
+            });
+        }
+        
+        async function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            await handleMultipleFiles(files);
+            event.target.value = ''; // Reset input to allow re-adding same file
+        }
+        
+        async function handleMultipleFiles(files) {
+            for (const file of files) {
+                try {
+                    showStatus(`Loading ${file.name}...`, 'info');
+                    const data = await loadSPDFile(file);
+                    const prefix = generatePrefix(file.name, spdFiles.length);
+                    
+                    spdFiles.push({
+                        data: data,
+                        fileName: file.name,
+                        prefix: prefix
+                    });
+                    
+                    showStatus(`Successfully loaded ${file.name}`, 'success');
+                    setTimeout(() => hideStatus(), 1000);
+                } catch (error) {
+                    showStatus(`Error loading ${file.name}: ${error.message}`, 'error');
+                    console.error(error);
+                }
+            }
+            
+            renderFileList();
+            updateMergeButton();
+        }
+        
+        function generatePrefix(fileName, index) {
+            if (index === 0) return ''; // First file gets no prefix
+            
+            // Extract base name without extension
+            const baseName = fileName.replace(/\.zip$/i, '');
+            
+            // Clean up the name: remove special chars, convert to uppercase, limit length
+            let prefix = baseName
+                .replace(/[^a-zA-Z0-9_-]/g, '_')
+                .toUpperCase()
+                .substring(0, 20);
+            
+            // Ensure it doesn't end with underscore
+            prefix = prefix.replace(/_+$/, '');
+            
+            // Add trailing underscore
+            return prefix + '_';
+        }
+        
+        function renderFileList() {
+            const fileListContainer = document.getElementById('fileList');
+            
+            if (spdFiles.length === 0) {
+                fileListContainer.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            
+            for (let i = 0; i < spdFiles.length; i++) {
+                const file = spdFiles[i];
+                const isPrimary = i === 0;
+                const taskCount = file.data.tables.Tasks?.length || 0;
+                const resourceCount = file.data.tables.Resources?.length || 0;
+                
+                html += `
+                    <div class="file-item ${isPrimary ? 'primary' : ''}" data-index="${i}">
+                        <div class="file-item-number">${isPrimary ? '★' : (i + 1)}</div>
+                        <div class="file-item-icon">📦</div>
+                        <div class="file-item-details">
+                            <div class="file-item-name">
+                                ${file.fileName}
+                                ${isPrimary ? '<span class="info-badge">PRIMARY</span>' : ''}
+                            </div>
+                            <div class="file-item-stats">
+                                ${taskCount} tasks, ${resourceCount} resources
+                            </div>
+                        </div>
+                        ${!isPrimary ? `
+                        <div class="file-item-prefix">
+                            <label>Prefix:</label>
+                            <input type="text" 
+                                   class="prefix-input" 
+                                   value="${file.prefix}" 
+                                   data-index="${i}"
+                                   onchange="updatePrefix(${i}, this.value)"
+                                   placeholder="PREFIX_" />
+                        </div>
+                        ` : '<div style="flex: 1; text-align: right; color: #28a745; font-weight: 600;">No prefix applied</div>'}
+                        <button class="remove-button" onclick="removeFile(${i})">Remove</button>
+                    </div>
+                `;
+            }
+            
+            fileListContainer.innerHTML = html;
+        }
+        
+        function updatePrefix(index, newPrefix) {
+            // Validate prefix
+            const validPattern = /^[A-Z0-9_-]*$/i;
+            const input = document.querySelector(`input.prefix-input[data-index="${index}"]`);
+            
+            if (!validPattern.test(newPrefix)) {
+                input.classList.add('invalid');
+                showStatus('Prefix can only contain letters, numbers, underscores, and dashes', 'warning');
+                return;
+            }
+            
+            input.classList.remove('invalid');
+            spdFiles[index].prefix = newPrefix;
+            
+            // Check for duplicate prefixes
+            const prefixes = spdFiles.map(f => f.prefix).filter(p => p !== '');
+            const uniquePrefixes = new Set(prefixes);
+            if (prefixes.length !== uniquePrefixes.size) {
+                showStatus('⚠ Warning: Duplicate prefixes detected. This may cause ID collisions.', 'warning');
+            } else {
+                hideStatus();
+            }
+        }
+        
+        function removeFile(index) {
+            spdFiles.splice(index, 1);
+            
+            // If we removed the first file, clear the prefix of the new first file
+            if (index === 0 && spdFiles.length > 0) {
+                spdFiles[0].prefix = '';
+            }
+            
+            renderFileList();
+            updateMergeButton();
+        }
+        
+        async function loadSPDFile(file) {
+            const zip = await JSZip.loadAsync(file);
+            const data = {
+                fileName: file.name,
+                tables: {}
+            };
+            
+            // Check FileType.txt
+            const fileTypeEntry = zip.file('FileType.txt');
+            if (!fileTypeEntry) {
+                throw new Error('Missing FileType.txt');
+            }
+            
+            const fileType = await fileTypeEntry.async('string');
+            if (fileType.trim() !== 'IPMDAR_SCHEDULE_PERFORMANCE_DATASET/1.0') {
+                throw new Error(`Invalid file type: ${fileType}`);
+            }
+            
+            // Load all JSON tables
+            const tableNames = [
+                'DatasetMetadata',
+                'SourceSoftwareMetadata',
+                'ProjectScheduleData',
+                'ProjectCustomFieldDefinitions',
+                'ProjectCustomFieldValues',
+                'Calendars',
+                'CalendarWorkshifts',
+                'CalendarExceptions',
+                'Tasks',
+                'TaskScheduleData',
+                'TaskCustomFieldDefinitions',
+                'TaskCustomFieldValues',
+                'TaskConstraints',
+                'TaskRelationships',
+                'TaskOutlineStructure',
+                'Resources',
+                'ResourceCustomFieldDefinitions',
+                'ResourceCustomFieldValues',
+                'ResourceAssignments'
+            ];
+            
+            for (const tableName of tableNames) {
+                const fileName = `${tableName}.json`;
+                const entry = zip.file(fileName);
+                if (entry) {
+                    const content = await entry.async('string');
+                    data.tables[tableName] = JSON.parse(content);
+                } else {
+                    data.tables[tableName] = Array.isArray(getSampleTable(tableName)) ? [] : null;
+                }
+            }
+            
+            return data;
+        }
+        
+        function getSampleTable(tableName) {
+            const singletons = ['DatasetMetadata', 'SourceSoftwareMetadata', 'ProjectScheduleData'];
+            return singletons.includes(tableName) ? {} : [];
+        }
+        
+        function updateMergeButton() {
+            const button = document.getElementById('mergeButton');
+            button.disabled = spdFiles.length < 2;
+            
+            if (spdFiles.length < 2) {
+                button.textContent = '🚀 Merge All SPD Files (Add at least 2 files)';
+            } else {
+                button.textContent = `🚀 Merge ${spdFiles.length} SPD Files`;
+            }
+        }
+        
+        function showStatus(message, type) {
+            const statusBox = document.getElementById('statusBox');
+            statusBox.textContent = message;
+            statusBox.className = `status-box ${type}`;
+        }
+        
+        function hideStatus() {
+            const statusBox = document.getElementById('statusBox');
+            statusBox.style.display = 'none';
+        }
+        
+        function updateProgress(percent) {
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            progressBar.classList.add('active');
+            progressFill.style.width = `${percent}%`;
+        }
+        
+        // Merge button handler
+        document.getElementById('mergeButton').addEventListener('click', async function() {
+            mergeLog = [];
+            this.disabled = true;
+            
+            try {
+                showStatus('Starting multi-file merge process...', 'info');
+                updateProgress(5);
+                
+                const config = {
+                    hierarchyStrategy: document.querySelector('input[name="hierarchyStrategy"]:checked').value,
+                    rootName: document.getElementById('rootNameInput').value || 'Master Project'
+                };
+                
+                logMessage('='.repeat(80));
+                logMessage('IPMDAR SPD MERGER TOOL - MULTI-FILE MERGE LOG');
+                logMessage('='.repeat(80));
+                logMessage(`Date/Time: ${new Date().toISOString()}`);
+                logMessage(`Number of Files: ${spdFiles.length}`);
+                logMessage('');
+                logMessage('FILES TO MERGE:');
+                spdFiles.forEach((file, index) => {
+                    logMessage(`  ${index + 1}. ${file.fileName}`);
+                    if (index === 0) {
+                        logMessage(`     Role: PRIMARY (no prefix applied)`);
+                    } else {
+                        logMessage(`     Prefix: "${file.prefix}"`);
+                    }
+                    logMessage(`     Tasks: ${file.data.tables.Tasks?.length || 0}`);
+                    logMessage(`     Resources: ${file.data.tables.Resources?.length || 0}`);
+                });
+                logMessage('');
+                logMessage(`Hierarchy Strategy: ${config.hierarchyStrategy === 'separate' ? 'Separate Hierarchies' : 'New Root Summary'}`);
+                if (config.hierarchyStrategy === 'newRoot') {
+                    logMessage(`Root Summary Name: "${config.rootName}"`);
+                }
+                logMessage('='.repeat(80));
+                logMessage('');
+                
+                updateProgress(10);
+                
+                // Perform sequential merge
+                mergedSPD = await mergeAllSPDFiles(spdFiles, config);
+                
+                updateProgress(90);
+                
+                // Generate output files
+                await generateOutputFiles(mergedSPD, config);
+                
+                updateProgress(100);
+                showStatus(`✓ Successfully merged ${spdFiles.length} files!`, 'success');
+                
+                displayResults();
+                
+            } catch (error) {
+                showStatus(`Error during merge: ${error.message}`, 'error');
+                logMessage('');
+                logMessage('ERROR: ' + error.message);
+                logMessage(error.stack);
+                console.error(error);
+            } finally {
+                this.disabled = false;
+            }
+        });
+        
+        async function mergeAllSPDFiles(files, config) {
+            logMessage('SEQUENTIAL MERGE PROCESS');
+            logMessage('-'.repeat(80));
+            logMessage(`Merging ${files.length} files sequentially...`);
+            logMessage(`File 1 (Primary) → Merge File 2 → Merge File 3 → ... → Final Result`);
+            logMessage('');
+            
+            // Start with first file as base
+            let accumulated = {
+                tables: JSON.parse(JSON.stringify(files[0].data.tables))
+            };
+            
+            logMessage(`BASE: ${files[0].fileName}`);
+            logMessage(`  Tasks: ${accumulated.tables.Tasks?.length || 0}`);
+            logMessage(`  Resources: ${accumulated.tables.Resources?.length || 0}`);
+            logMessage('');
+            
+            const progressPerFile = 70 / (files.length - 1);
+            
+            // Merge each subsequent file into the accumulated result
+            for (let i = 1; i < files.length; i++) {
+                const file = files[i];
+                logMessage(`${'='.repeat(80)}`);
+                logMessage(`MERGING FILE ${i + 1}: ${file.fileName}`);
+                logMessage(`Prefix: "${file.prefix}"`);
+                logMessage(`${'='.repeat(80)}`);
+                logMessage('');
+                
+                const tempConfig = {
+                    idStrategy: 'prefix',
+                    prefix: file.prefix,
+                    hierarchyStrategy: 'separate', // Accumulate with separate hierarchies
+                    rootName: config.rootName
+                };
+                
+                // Create temporary SPD objects for the merge function
+                const spd1 = { tables: accumulated.tables, fileName: 'accumulated' };
+                const spd2 = { tables: file.data.tables, fileName: file.fileName };
+                
+                // Merge this file into accumulated
+                accumulated = await mergeTwoSPDFiles(spd1, spd2, tempConfig, i, files.length);
+                
+                logMessage('');
+                logMessage(`ACCUMULATED RESULTS AFTER FILE ${i + 1}:`);
+                logMessage(`  Total Tasks: ${accumulated.tables.Tasks?.length || 0}`);
+                logMessage(`  Total Resources: ${accumulated.tables.Resources?.length || 0}`);
+                logMessage(`  Total Relationships: ${accumulated.tables.TaskRelationships?.length || 0}`);
+                logMessage('');
+                
+                updateProgress(10 + (i * progressPerFile));
+            }
+            
+            // If final hierarchy strategy is newRoot, rebuild now
+            if (config.hierarchyStrategy === 'newRoot') {
+                logMessage('='.repeat(80));
+                logMessage('FINAL STEP: CREATING NEW ROOT HIERARCHY');
+                logMessage('='.repeat(80));
+                logMessage('');
+                
+                createMasterRootHierarchy(
+                    accumulated.tables.TaskOutlineStructure,
+                    accumulated.tables.Tasks,
+                    accumulated.tables.TaskScheduleData,
+                    config.rootName
+                );
+            }
+            
+            logMessage('');
+            logMessage('='.repeat(80));
+            logMessage('SEQUENTIAL MERGE COMPLETE');
+            logMessage('='.repeat(80));
+            logMessage('');
+            
+            // Run final validation
+            logMessage('FINAL VALIDATION');
+            logMessage('-'.repeat(80));
+            validateMergedData(accumulated);
+            
+            return accumulated;
+        }
+        
+        async function mergeTwoSPDFiles(spd1, spd2, config, fileNumber, totalFiles) {
+            const merged = {
+                tables: {}
+            };
+            
+            logMessage('PHASE 1: MERGING SINGLETON TABLES');
+            logMessage('-'.repeat(80));
+            
+            merged.tables.DatasetMetadata = mergeSingleton('DatasetMetadata', spd1.tables.DatasetMetadata, spd2.tables.DatasetMetadata);
+            merged.tables.SourceSoftwareMetadata = mergeSingleton('SourceSoftwareMetadata', spd1.tables.SourceSoftwareMetadata, spd2.tables.SourceSoftwareMetadata);
+            merged.tables.ProjectScheduleData = mergeProjectScheduleData(spd1.tables.ProjectScheduleData, spd2.tables.ProjectScheduleData);
+            
+            logMessage('');
+            logMessage('PHASE 2: MERGING CUSTOM FIELD DEFINITIONS');
+            logMessage('-'.repeat(80));
+            
+            merged.tables.ProjectCustomFieldDefinitions = mergeCustomFieldDefinitions('ProjectCustomFieldDefinitions', 
+                spd1.tables.ProjectCustomFieldDefinitions, spd2.tables.ProjectCustomFieldDefinitions);
+            merged.tables.TaskCustomFieldDefinitions = mergeCustomFieldDefinitions('TaskCustomFieldDefinitions',
+                spd1.tables.TaskCustomFieldDefinitions, spd2.tables.TaskCustomFieldDefinitions);
+            merged.tables.ResourceCustomFieldDefinitions = mergeCustomFieldDefinitions('ResourceCustomFieldDefinitions',
+                spd1.tables.ResourceCustomFieldDefinitions, spd2.tables.ResourceCustomFieldDefinitions);
+            
+            logMessage('');
+            logMessage('PHASE 3: MERGING CALENDARS');
+            logMessage('-'.repeat(80));
+            
+            const calendarMapping = {};
+            merged.tables.Calendars = mergeRecordsWithMapping('Calendars', 
+                spd1.tables.Calendars, spd2.tables.Calendars, 'ID', config, calendarMapping);
+            merged.tables.CalendarWorkshifts = mergeCalendarRelated('CalendarWorkshifts',
+                spd1.tables.CalendarWorkshifts, spd2.tables.CalendarWorkshifts, calendarMapping, config);
+            merged.tables.CalendarExceptions = mergeCalendarRelated('CalendarExceptions',
+                spd1.tables.CalendarExceptions, spd2.tables.CalendarExceptions, calendarMapping, config);
+            
+            logMessage('');
+            logMessage('PHASE 4: MERGING RESOURCES');
+            logMessage('-'.repeat(80));
+            
+            const resourceMapping = {};
+            merged.tables.Resources = mergeRecordsWithMapping('Resources',
+                spd1.tables.Resources, spd2.tables.Resources, 'ID', config, resourceMapping);
+            
+            logMessage('');
+            logMessage('PHASE 5: MERGING TASKS');
+            logMessage('-'.repeat(80));
+            
+            const taskMapping = {};
+            merged.tables.Tasks = mergeRecordsWithMapping('Tasks',
+                spd1.tables.Tasks, spd2.tables.Tasks, 'ID', config, taskMapping);
+            
+            logMessage('');
+            logMessage('PHASE 6: MERGING TASK-RELATED TABLES');
+            logMessage('-'.repeat(80));
+            
+            merged.tables.TaskScheduleData = mergeTaskRelated('TaskScheduleData',
+                spd1.tables.TaskScheduleData, spd2.tables.TaskScheduleData, taskMapping, 'TaskID', config);
+            merged.tables.TaskConstraints = mergeTaskRelated('TaskConstraints',
+                spd1.tables.TaskConstraints, spd2.tables.TaskConstraints, taskMapping, 'TaskID', config);
+            merged.tables.TaskRelationships = mergeTaskRelationships(
+                spd1.tables.TaskRelationships, spd2.tables.TaskRelationships, taskMapping, config);
+            
+            logMessage('');
+            logMessage('PHASE 7: MERGING CUSTOM FIELD VALUES');
+            logMessage('-'.repeat(80));
+            
+            merged.tables.ProjectCustomFieldValues = mergeProjectCustomFieldValues(
+                spd1.tables.ProjectCustomFieldValues, spd2.tables.ProjectCustomFieldValues);
+            merged.tables.TaskCustomFieldValues = mergeTaskCustomFieldValues(
+                spd1.tables.TaskCustomFieldValues, spd2.tables.TaskCustomFieldValues, taskMapping, config);
+            merged.tables.ResourceCustomFieldValues = mergeResourceCustomFieldValues(
+                spd1.tables.ResourceCustomFieldValues, spd2.tables.ResourceCustomFieldValues, resourceMapping, config);
+            
+            logMessage('');
+            logMessage('PHASE 8: MERGING RESOURCE ASSIGNMENTS');
+            logMessage('-'.repeat(80));
+            
+            merged.tables.ResourceAssignments = mergeResourceAssignments(
+                spd1.tables.ResourceAssignments, spd2.tables.ResourceAssignments, 
+                resourceMapping, taskMapping, config);
+            
+            logMessage('');
+            logMessage('PHASE 9: MERGING TASK OUTLINE STRUCTURES');
+            logMessage('-'.repeat(80));
+            
+            merged.tables.TaskOutlineStructure = mergeTaskOutlineStructures(
+                spd1.tables.TaskOutlineStructure, spd2.tables.TaskOutlineStructure,
+                merged.tables.Tasks, taskMapping, config);
+            
+            return merged;
+        }
+        
+        function mergeTaskOutlineStructures(outline1, outline2, mergedTasks, taskMapping, config) {
+            logMessage(`Merging TaskOutlineStructure (keeping separate)...`);
+            
+            if (!outline1) outline1 = [];
+            if (!outline2) outline2 = [];
+            
+            const merged = [];
+            const summaryTasks = new Set(
+                mergedTasks.filter(t => t.TaskTypeID === 'SUMMARY').map(t => t.ID)
+            );
+            
+            // Add all nodes from outline1
+            for (const node of outline1) {
+                if (summaryTasks.has(node.TaskID)) {
+                    merged.push({...node});
+                }
+            }
+            
+            // Add all nodes from outline2 with remapped IDs
+            for (const node of outline2) {
+                const newTaskId = taskMapping[node.TaskID] || node.TaskID;
+                if (summaryTasks.has(newTaskId)) {
+                    const newParentId = node.ParentTaskID ? (taskMapping[node.ParentTaskID] || node.ParentTaskID) : null;
+                    merged.push({
+                        Level: node.Level,
+                        TaskID: newTaskId,
+                        ParentTaskID: newParentId
+                    });
+                }
+            }
+            
+            logMessage(`  ✓ Combined ${outline1.length} + ${outline2.length} nodes = ${merged.length} total`);
+            
+            return merged;
+        }
+        
+        function createMasterRootHierarchy(outline, tasks, taskScheduleData, rootName) {
+            logMessage(`Creating new root summary for all hierarchies...`);
+            
+            const rootTaskId = 'MASTER_ROOT_' + Date.now();
+            
+            // Add root task to tasks array
+            tasks.unshift({
+                ID: rootTaskId,
+                Name: rootName,
+                TaskTypeID: 'SUMMARY'
+            });
+            
+            // Calculate rolled-up schedule data from all existing tasks
+            const existingSchedules = taskScheduleData.filter(s => s.TaskID !== rootTaskId);
+            
+            // Find earliest start date and latest finish date
+            let earliestStart = null;
+            let latestFinish = null;
+            let earliestEarlyStart = null;
+            let latestEarlyFinish = null;
+            let earliestLateStart = null;
+            let latestLateFinish = null;
+            let earliestBaselineStart = null;
+            let latestBaselineFinish = null;
+            let earliestActualStart = null;
+            let latestActualFinish = null;
+            let hasBaseline = false;
+            let hasActualStart = false;
+            let hasActualFinish = false;
+            
+            // Find a calendar (use the most common one)
+            const calendarCounts = {};
+            for (const schedule of existingSchedules) {
+                calendarCounts[schedule.CalendarID] = (calendarCounts[schedule.CalendarID] || 0) + 1;
+                
+                // Current dates
+                if (!earliestStart || schedule.CurrentStartDate < earliestStart) {
+                    earliestStart = schedule.CurrentStartDate;
+                }
+                if (!latestFinish || schedule.CurrentFinishDate > latestFinish) {
+                    latestFinish = schedule.CurrentFinishDate;
+                }
+                
+                // Early dates
+                if (!earliestEarlyStart || schedule.EarlyStartDate < earliestEarlyStart) {
+                    earliestEarlyStart = schedule.EarlyStartDate;
+                }
+                if (!latestEarlyFinish || schedule.EarlyFinishDate > latestEarlyFinish) {
+                    latestEarlyFinish = schedule.EarlyFinishDate;
+                }
+                
+                // Late dates
+                if (!earliestLateStart || schedule.LateStartDate < earliestLateStart) {
+                    earliestLateStart = schedule.LateStartDate;
+                }
+                if (!latestLateFinish || schedule.LateFinishDate > latestLateFinish) {
+                    latestLateFinish = schedule.LateFinishDate;
+                }
+                
+                // Baseline dates
+                if (schedule.BaselineStartDate) {
+                    hasBaseline = true;
+                    if (!earliestBaselineStart || schedule.BaselineStartDate < earliestBaselineStart) {
+                        earliestBaselineStart = schedule.BaselineStartDate;
+                    }
+                }
+                if (schedule.BaselineFinishDate) {
+                    if (!latestBaselineFinish || schedule.BaselineFinishDate > latestBaselineFinish) {
+                        latestBaselineFinish = schedule.BaselineFinishDate;
+                    }
+                }
+                
+                // Actual dates
+                if (schedule.ActualStartDate) {
+                    hasActualStart = true;
+                    if (!earliestActualStart || schedule.ActualStartDate < earliestActualStart) {
+                        earliestActualStart = schedule.ActualStartDate;
+                    }
+                }
+                if (schedule.ActualFinishDate) {
+                    hasActualFinish = true;
+                    if (!latestActualFinish || schedule.ActualFinishDate > latestActualFinish) {
+                        latestActualFinish = schedule.ActualFinishDate;
+                    }
+                }
+            }
+            
+            // Use most common calendar
+            let mostCommonCalendar = 'DEFAULT';
+            let maxCount = 0;
+            for (const [calendar, count] of Object.entries(calendarCounts)) {
+                if (count > maxCount) {
+                    maxCount = count;
+                    mostCommonCalendar = calendar;
+                }
+            }
+            
+            // Calculate duration in days (simplified calculation)
+            const calculateDays = (start, finish) => {
+                if (!start || !finish) return 0;
+                const startDate = new Date(start);
+                const finishDate = new Date(finish);
+                return Math.max(0, Math.ceil((finishDate - startDate) / (1000 * 60 * 60 * 24)));
+            };
+            
+            const currentDuration = calculateDays(earliestStart, latestFinish);
+            const baselineDuration = hasBaseline ? calculateDays(earliestBaselineStart, latestBaselineFinish) : null;
+            const remainingDuration = hasActualFinish ? 0 : currentDuration;
+            
+            // Calculate variance durations
+            let startVariance = null;
+            let finishVariance = null;
+            if (hasBaseline) {
+                startVariance = calculateDays(earliestBaselineStart, earliestStart);
+                finishVariance = calculateDays(latestBaselineFinish, latestFinish);
+            }
+            
+            // Create TaskScheduleData entry for root summary
+            const rootSchedule = {
+                TaskID: rootTaskId,
+                CalendarID: mostCommonCalendar,
+                CurrentDuration: currentDuration,
+                CurrentStartDate: earliestStart,
+                CurrentFinishDate: latestFinish,
+                EarlyStartDate: earliestEarlyStart || earliestStart,
+                EarlyFinishDate: latestEarlyFinish || latestFinish,
+                LateStartDate: earliestLateStart || earliestStart,
+                LateFinishDate: latestLateFinish || latestFinish,
+                FreeFloatDuration: 0,
+                TotalFloatDuration: 0,
+                OnCriticalPath: true,
+                CalculatedPercentComplete: 0,
+                RemainingDuration: remainingDuration
+            };
+            
+            // Add optional baseline fields if available
+            if (hasBaseline) {
+                rootSchedule.BaselineDuration = baselineDuration;
+                rootSchedule.BaselineStartDate = earliestBaselineStart;
+                rootSchedule.BaselineFinishDate = latestBaselineFinish;
+                rootSchedule.StartVarianceDuration = startVariance;
+                rootSchedule.FinishVarianceDuration = finishVariance;
+            }
+            
+            // Add optional actual dates if available
+            if (hasActualStart) {
+                rootSchedule.ActualStartDate = earliestActualStart;
+            }
+            if (hasActualFinish) {
+                rootSchedule.ActualFinishDate = latestActualFinish;
+            }
+            
+            // Add root schedule to beginning of array
+            taskScheduleData.unshift(rootSchedule);
+            
+            // Rebuild outline with new root
+            const newOutline = [];
+            
+            // Add root node
+            newOutline.push({
+                Level: 1,
+                TaskID: rootTaskId,
+                ParentTaskID: null
+            });
+            
+            // Add all existing nodes, incrementing levels and setting Level 1 parents to root
+            for (const node of outline) {
+                const newNode = {
+                    Level: node.Level + 1,
+                    TaskID: node.TaskID,
+                    ParentTaskID: node.Level === 1 ? rootTaskId : node.ParentTaskID
+                };
+                newOutline.push(newNode);
+            }
+            
+            logMessage(`  ✓ Created root task: ${rootTaskId}`);
+            logMessage(`  ✓ Created TaskScheduleData entry for root task`);
+            logMessage(`  ✓ Adjusted ${outline.length} nodes to new hierarchy`);
+            
+            // Update the original arrays by replacing them
+            outline.length = 0;
+            outline.push(...newOutline);
+        }
+        
+        // All the merge helper functions from v1.1
+        function mergeCustomFieldDefinitions(tableName, defs1, defs2) {
+            logMessage(`Merging ${tableName} (${defs1?.length || 0} + ${defs2?.length || 0} records)...`);
+            
+            if (!defs1) defs1 = [];
+            if (!defs2) defs2 = [];
+            
+            const merged = [...defs1];
+            const existingIds = new Set(defs1.map(d => d.CustomFieldID));
+            let added = 0;
+            let conflicts = 0;
+            
+            for (const def2 of defs2) {
+                if (existingIds.has(def2.CustomFieldID)) {
+                    const existing = merged.find(d => d.CustomFieldID === def2.CustomFieldID);
+                    if (JSON.stringify(existing) !== JSON.stringify(def2)) {
+                        conflicts++;
+                        logMessage(`  ⚠ WARNING: CustomFieldID "${def2.CustomFieldID}" has different definitions`);
+                        logMessage(`    File 1 Name: "${existing.Name}"`);
+                        logMessage(`    File 2 Name: "${def2.Name}"`);
+                        logMessage(`    RESOLUTION: Using File 1 definition`);
+                    }
+                } else {
+                    merged.push({...def2});
+                    existingIds.add(def2.CustomFieldID);
+                    added++;
+                }
+            }
+            
+            logMessage(`  ✓ Added: ${added}, Conflicts: ${conflicts} (File 1 definitions kept)`);
+            
+            return merged;
+        }
+        
+        function mergeSingleton(tableName, table1, table2) {
+            logMessage(`Merging ${tableName}...`);
+            
+            if (!table1 && !table2) {
+                logMessage(`  Both tables are empty - no merge needed`);
+                return null;
+            }
+            
+            if (!table1) {
+                logMessage(`  File 1 table is empty - using File 2`);
+                return {...table2};
+            }
+            
+            if (!table2) {
+                logMessage(`  File 2 table is empty - using File 1`);
+                return {...table1};
+            }
+            
+            const merged = {...table1};
+            let conflicts = 0;
+            
+            for (const key in table2) {
+                if (table1[key] !== undefined && table1[key] !== table2[key]) {
+                    conflicts++;
+                    logMessage(`  CONFLICT: ${key} (using File 1 value)`);
+                }
+            }
+            
+            if (conflicts === 0) {
+                logMessage(`  ✓ No conflicts detected`);
+            } else {
+                logMessage(`  ⚠ ${conflicts} conflict(s) resolved by using File 1 values`);
+            }
+            
+            return merged;
+        }
+        
+        function mergeProjectScheduleData(table1, table2) {
+            logMessage(`Merging ProjectScheduleData with date logic...`);
+            
+            if (!table1 && !table2) return null;
+            if (!table1) return {...table2};
+            if (!table2) return {...table1};
+            
+            const merged = {...table1};
+            
+            // Use earlier start dates
+            if (table2.CurrentStartDate && (!merged.CurrentStartDate || table2.CurrentStartDate < merged.CurrentStartDate)) {
+                logMessage(`  Using earlier CurrentStartDate: ${table2.CurrentStartDate}`);
+                merged.CurrentStartDate = table2.CurrentStartDate;
+            }
+            
+            if (table2.BaselineStartDate && (!merged.BaselineStartDate || table2.BaselineStartDate < merged.BaselineStartDate)) {
+                logMessage(`  Using earlier BaselineStartDate: ${table2.BaselineStartDate}`);
+                merged.BaselineStartDate = table2.BaselineStartDate;
+            }
+            
+            if (table2.ActualStartDate && (!merged.ActualStartDate || table2.ActualStartDate < merged.ActualStartDate)) {
+                logMessage(`  Using earlier ActualStartDate: ${table2.ActualStartDate}`);
+                merged.ActualStartDate = table2.ActualStartDate;
+            }
+            
+            // Use later finish dates
+            if (table2.CurrentFinishDate && (!merged.CurrentFinishDate || table2.CurrentFinishDate > merged.CurrentFinishDate)) {
+                logMessage(`  Using later CurrentFinishDate: ${table2.CurrentFinishDate}`);
+                merged.CurrentFinishDate = table2.CurrentFinishDate;
+            }
+            
+            if (table2.BaselineFinishDate && (!merged.BaselineFinishDate || table2.BaselineFinishDate > merged.BaselineFinishDate)) {
+                logMessage(`  Using later BaselineFinishDate: ${table2.BaselineFinishDate}`);
+                merged.BaselineFinishDate = table2.BaselineFinishDate;
+            }
+            
+            if (table2.ActualFinishDate && (!merged.ActualFinishDate || table2.ActualFinishDate > merged.ActualFinishDate)) {
+                logMessage(`  Using later ActualFinishDate: ${table2.ActualFinishDate}`);
+                merged.ActualFinishDate = table2.ActualFinishDate;
+            }
+            
+            // Use later status date
+            if (table2.StatusDate && (!merged.StatusDate || table2.StatusDate > merged.StatusDate)) {
+                logMessage(`  Using later StatusDate: ${table2.StatusDate}`);
+                merged.StatusDate = table2.StatusDate;
+            }
+            
+            logMessage(`  ✓ Project schedule data merged`);
+            
+            return merged;
+        }
+        
+        function mergeRecordsWithMapping(tableName, records1, records2, keyField, config, mapping) {
+            logMessage(`Merging ${tableName} (${records1?.length || 0} + ${records2?.length || 0} records)...`);
+            
+            if (!records1) records1 = [];
+            if (!records2) records2 = [];
+            
+            const merged = [...records1];
+            let added = 0;
+            let renamed = 0;
+            
+            for (const record2 of records2) {
+                const originalId = record2[keyField];
+                const newId = config.prefix + originalId;
+                renamed++;
+                
+                const newRecord = {...record2};
+                newRecord[keyField] = newId;
+                merged.push(newRecord);
+                mapping[originalId] = newId;
+                added++;
+            }
+            
+            logMessage(`  ✓ Added: ${added}, Prefixed: ${renamed}`);
+            
+            return merged;
+        }
+        
+        function mergeProjectCustomFieldValues(values1, values2) {
+            logMessage(`Merging ProjectCustomFieldValues...`);
+            
+            if (!values1) values1 = [];
+            if (!values2) values2 = [];
+            
+            const merged = [...values1];
+            const existingIds = new Set(values1.map(v => v.CustomFieldID));
+            let added = 0;
+            let conflicts = 0;
+            
+            for (const value2 of values2) {
+                if (existingIds.has(value2.CustomFieldID)) {
+                    const existing = merged.find(v => v.CustomFieldID === value2.CustomFieldID);
+                    if (existing.Value !== value2.Value) {
+                        conflicts++;
+                    }
+                } else {
+                    merged.push({...value2});
+                    existingIds.add(value2.CustomFieldID);
+                    added++;
+                }
+            }
+            
+            logMessage(`  ✓ Added: ${added}, Conflicts: ${conflicts} (File 1 values kept)`);
+            
+            return merged;
+        }
+        
+        function mergeTaskCustomFieldValues(values1, values2, taskMapping, config) {
+            logMessage(`Merging TaskCustomFieldValues...`);
+            
+            if (!values1) values1 = [];
+            if (!values2) values2 = [];
+            
+            const merged = [...values1];
+            let added = 0;
+            
+            for (const value2 of values2) {
+                const newValue = {...value2};
+                const originalTaskId = value2.TaskID;
+                const newTaskId = taskMapping[originalTaskId] || originalTaskId;
+                newValue.TaskID = newTaskId;
+                
+                merged.push(newValue);
+                added++;
+            }
+            
+            logMessage(`  ✓ Added: ${added} records (CustomFieldIDs unchanged)`);
+            
+            return merged;
+        }
+        
+        function mergeResourceCustomFieldValues(values1, values2, resourceMapping, config) {
+            logMessage(`Merging ResourceCustomFieldValues...`);
+            
+            if (!values1) values1 = [];
+            if (!values2) values2 = [];
+            
+            const merged = [...values1];
+            let added = 0;
+            
+            for (const value2 of values2) {
+                const newValue = {...value2};
+                const originalResId = value2.ResourceID;
+                const newResId = resourceMapping[originalResId] || originalResId;
+                newValue.ResourceID = newResId;
+                
+                merged.push(newValue);
+                added++;
+            }
+            
+            logMessage(`  ✓ Added: ${added} records (CustomFieldIDs unchanged)`);
+            
+            return merged;
+        }
+        
+        function mergeCalendarRelated(tableName, records1, records2, calendarMapping, config) {
+            logMessage(`Merging ${tableName}...`);
+            
+            if (!records1) records1 = [];
+            if (!records2) records2 = [];
+            
+            const merged = [...records1];
+            let added = 0;
+            
+            for (const record2 of records2) {
+                const newRecord = {...record2};
+                const originalCalId = record2.CalendarID;
+                const newCalId = calendarMapping[originalCalId] || originalCalId;
+                newRecord.CalendarID = newCalId;
+                
+                merged.push(newRecord);
+                added++;
+            }
+            
+            logMessage(`  ✓ Added: ${added} records`);
+            
+            return merged;
+        }
+        
+        function mergeTaskRelated(tableName, records1, records2, taskMapping, keyField, config) {
+            logMessage(`Merging ${tableName}...`);
+            
+            if (!records1) records1 = [];
+            if (!records2) records2 = [];
+            
+            const merged = [...records1];
+            let added = 0;
+            
+            for (const record2 of records2) {
+                const newRecord = {...record2};
+                const originalTaskId = record2[keyField];
+                const newTaskId = taskMapping[originalTaskId] || originalTaskId;
+                newRecord[keyField] = newTaskId;
+                
+                merged.push(newRecord);
+                added++;
+            }
+            
+            logMessage(`  ✓ Added: ${added} records`);
+            
+            return merged;
+        }
+        
+        function mergeTaskRelationships(rels1, rels2, taskMapping, config) {
+            logMessage(`Merging TaskRelationships...`);
+            
+            if (!rels1) rels1 = [];
+            if (!rels2) rels2 = [];
+            
+            const merged = [...rels1];
+            let added = 0;
+            
+            for (const rel2 of rels2) {
+                const newRel = {...rel2};
+                newRel.PredecessorTaskID = taskMapping[rel2.PredecessorTaskID] || rel2.PredecessorTaskID;
+                newRel.SuccessorTaskID = taskMapping[rel2.SuccessorTaskID] || rel2.SuccessorTaskID;
+                
+                merged.push(newRel);
+                added++;
+            }
+            
+            logMessage(`  ✓ Added: ${added} relationships`);
+            
+            return merged;
+        }
+        
+        function mergeResourceAssignments(assigns1, assigns2, resourceMapping, taskMapping, config) {
+            logMessage(`Merging ResourceAssignments...`);
+            
+            if (!assigns1) assigns1 = [];
+            if (!assigns2) assigns2 = [];
+            
+            const merged = [...assigns1];
+            let added = 0;
+            
+            for (const assign2 of assigns2) {
+                const newAssign = {...assign2};
+                newAssign.ResourceID = resourceMapping[assign2.ResourceID] || assign2.ResourceID;
+                newAssign.TaskID = taskMapping[assign2.TaskID] || assign2.TaskID;
+                
+                merged.push(newAssign);
+                added++;
+            }
+            
+            logMessage(`  ✓ Added: ${added} assignments`);
+            
+            return merged;
+        }
+        
+        function validateMergedData(merged) {
+            logMessage(`Running validation checks...`);
+            let warnings = 0;
+            let errors = 0;
+            
+            const taskIds = new Set(merged.tables.Tasks.map(t => t.ID));
+            const scheduleTaskIds = new Set(merged.tables.TaskScheduleData.map(s => s.TaskID));
+            
+            for (const taskId of taskIds) {
+                if (!scheduleTaskIds.has(taskId)) {
+                    warnings++;
+                }
+            }
+            
+            for (const rel of merged.tables.TaskRelationships) {
+                if (!taskIds.has(rel.PredecessorTaskID)) {
+                    errors++;
+                    logMessage(`  ✗ ERROR: Invalid predecessor: ${rel.PredecessorTaskID}`);
+                }
+                if (!taskIds.has(rel.SuccessorTaskID)) {
+                    errors++;
+                    logMessage(`  ✗ ERROR: Invalid successor: ${rel.SuccessorTaskID}`);
+                }
+            }
+            
+            const calendarIds = new Set(merged.tables.Calendars.map(c => c.ID));
+            for (const schedule of merged.tables.TaskScheduleData) {
+                if (!calendarIds.has(schedule.CalendarID)) {
+                    errors++;
+                    logMessage(`  ✗ ERROR: Invalid calendar: ${schedule.CalendarID}`);
+                }
+            }
+            
+            const resourceIds = new Set(merged.tables.Resources.map(r => r.ID));
+            for (const assign of merged.tables.ResourceAssignments) {
+                if (!resourceIds.has(assign.ResourceID)) {
+                    errors++;
+                    logMessage(`  ✗ ERROR: Invalid resource: ${assign.ResourceID}`);
+                }
+                if (!taskIds.has(assign.TaskID)) {
+                    errors++;
+                    logMessage(`  ✗ ERROR: Invalid task in assignment: ${assign.TaskID}`);
+                }
+            }
+            
+            if (errors === 0 && warnings === 0) {
+                logMessage(`  ✓ Validation passed`);
+            } else {
+                logMessage(`  Validation: ${errors} error(s), ${warnings} warning(s)`);
+            }
+            
+            return {errors, warnings};
+        }
+        
+        async function generateOutputFiles(merged, config) {
+            logMessage('');
+            logMessage('GENERATING OUTPUT FILES');
+            logMessage('-'.repeat(80));
+            
+            const zip = new JSZip();
+            
+            const fileTypeText = 'IPMDAR_SCHEDULE_PERFORMANCE_DATASET/1.0';
+            zip.file('FileType.txt', fileTypeText, {
+                binary: false,
+                createFolders: false
+            });
+            logMessage('✓ Added FileType.txt');
+            
+            for (const [tableName, data] of Object.entries(merged.tables)) {
+                if (data !== null && (Array.isArray(data) ? data.length > 0 : Object.keys(data).length > 0)) {
+                    const jsonContent = JSON.stringify(data, null, 2);
+                    zip.file(`${tableName}.json`, jsonContent, {
+                        binary: false,
+                        createFolders: false,
+                        date: new Date()
+                    });
+                    logMessage(`✓ Added ${tableName}.json`);
+                }
+            }
+            
+            const content = await zip.generateAsync({
+                type: 'blob',
+                compression: 'DEFLATE',
+                compressionOptions: {level: 6},
+                platform: 'UNIX',
+                mimeType: 'application/zip'
+            });
+            
+            const url = URL.createObjectURL(content);
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+            const fileName = `MERGED_${spdFiles.length}FILES_${timestamp}.zip`;
+            
+            window.mergedSPDUrl = url;
+            window.mergedSPDFileName = fileName;
+            
+            logMessage('');
+            logMessage('='.repeat(80));
+            logMessage('MULTI-FILE MERGE COMPLETE');
+            logMessage('='.repeat(80));
+        }
+        
+        function displayResults() {
+            const statsSection = document.getElementById('statsSection');
+            const logPreview = document.getElementById('logPreview');
+            const downloadLinks = document.getElementById('downloadLinks');
+            
+            const stats = {
+                files: spdFiles.length,
+                tasks: mergedSPD.tables.Tasks.length,
+                resources: mergedSPD.tables.Resources.length,
+                relationships: mergedSPD.tables.TaskRelationships.length,
+                assignments: mergedSPD.tables.ResourceAssignments.length
+            };
+            
+            statsSection.innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>${stats.files}</h3>
+                        <p>Files Merged</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${stats.tasks}</h3>
+                        <p>Total Tasks</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${stats.resources}</h3>
+                        <p>Total Resources</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${stats.relationships}</h3>
+                        <p>Task Relationships</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${stats.assignments}</h3>
+                        <p>Resource Assignments</p>
+                    </div>
+                </div>
+            `;
+            
+            const logText = mergeLog.join('\n');
+            logPreview.innerHTML = `<div class="log-preview">${escapeHtml(logText.substring(0, 5000))}${logText.length > 5000 ? '\n\n... (log truncated, download full log file)' : ''}</div>`;
+            
+            const logBlob = new Blob([logText], {type: 'text/plain'});
+            const logUrl = URL.createObjectURL(logBlob);
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+            const logFileName = `MERGE_LOG_${spdFiles.length}FILES_${timestamp}.txt`;
+            
+            downloadLinks.innerHTML = `
+                <div class="download-links">
+                    <a href="${window.mergedSPDUrl}" download="${window.mergedSPDFileName}" class="download-button primary">
+                        📦 Download Merged SPD (${stats.files} files)
+                    </a>
+                    <a href="${logUrl}" download="${logFileName}" class="download-button secondary">
+                        📄 Download Log File
+                    </a>
+                </div>
+            `;
+        }
+        
+        function logMessage(message) {
+            mergeLog.push(message);
+            console.log(message);
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
